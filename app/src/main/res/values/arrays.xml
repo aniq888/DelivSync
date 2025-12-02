@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="vehicle_types">
+        <item>Bike</item>
+        <item>Scooter</item>
+        <item>Car</item>
+        <item>Van</item>
+        <item>Truck</item>
+    </string-array>
+    <string-array name="depot_cities">
+        <item>New York</item>
+        <item>Los Angeles</item>
+        <item>Chicago</item>
+        <item>Houston</item>
+        <item>Seattle</item>
+    </string-array>
+</resources>

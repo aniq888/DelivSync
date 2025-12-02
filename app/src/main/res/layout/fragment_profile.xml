@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F7F9F8">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:gravity="center_horizontal">
+
+        <ImageView
+            android:id="@+id/imgProfilePhoto"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/driver"
+            android:background="@drawable/circle_background"
+            android:padding="4dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="Profile Photo"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:id="@+id/tvDriverName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Driver Name"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:layout_marginTop="8dp"/>
+        <TextView
+            android:id="@+id/tvDriverId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Driver ID: Loading..."
+            android:textColor="#6A6F6E"/>
+
+        <LinearLayout
+            android:id="@+id/emailCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp"
+            android:background="#FFFFFF"
+            android:padding="12dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Email" android:textStyle="bold"/>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etProfileEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="#6A6F6E"
+                android:inputType="textEmailAddress"
+                android:enabled="false"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/phoneCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="12dp"
+            android:background="#FFFFFF"
+            android:padding="12dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Contact Number" android:textStyle="bold"/>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etProfilePhone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="#6A6F6E"
+                android:inputType="phone"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/vehicleCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="12dp"
+            android:background="#FFFFFF"
+            android:padding="12dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Vehicle Details" android:textStyle="bold"/>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etProfileVehicle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="#6A6F6E"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/depotCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="12dp"
+            android:background="#FFFFFF"
+            android:padding="12dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Depot" android:textStyle="bold"/>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etProfileDepot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="#6A6F6E"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/availabilityCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="12dp"
+            android:background="#FFFFFF"
+            android:padding="12dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Availability" android:textStyle="bold"/>
+            <Switch android:id="@+id/switchAvailability" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true"/>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUpdateProfile"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Update Profile"
+            android:textAllCaps="false"
+            android:backgroundTint="#10A87D"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="16dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogout"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Logout"
+            android:textAllCaps="false"
+            android:layout_marginTop="12dp"/>
+
+    </LinearLayout>
+</ScrollView>

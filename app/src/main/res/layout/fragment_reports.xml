@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F7F9F8">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="COD Summary"
+            android:textStyle="bold"
+            android:textSize="18sp"/>
+
+        <!-- COD Summary -->
+        <LinearLayout
+            android:id="@+id/codTotalCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp"
+            android:padding="12dp"
+            android:background="#FFFFFF">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Total COD Collected" android:textColor="#6A6F6E"/>
+            <TextView 
+                android:id="@+id/tvTotalCOD"
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:text="$0.00" 
+                android:textStyle="bold" 
+                android:textSize="22sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/codSubmissionsCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp"
+            android:padding="12dp"
+            android:background="#FFFFFF">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="COD Submissions" android:textColor="#6A6F6E"/>
+            <TextView 
+                android:id="@+id/tvCODSubmissions"
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:text="0" 
+                android:textStyle="bold" 
+                android:textSize="22sp"/>
+        </LinearLayout>
+
+        <!-- Performance Stats -->
+        <TextView
+            android:id="@+id/performanceTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Performance Statistics"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_marginTop="16dp"/>
+
+        <LinearLayout
+            android:id="@+id/performanceCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:padding="16dp"
+            android:layout_marginTop="8dp">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Total Deliveries:"
+                    android:textColor="#6A6F6E"/>
+                <TextView
+                    android:id="@+id/tvTotalDeliveries"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Completed:"
+                    android:textColor="#6A6F6E"/>
+                <TextView
+                    android:id="@+id/tvCompletedDeliveries"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Failed:"
+                    android:textColor="#6A6F6E"/>
+                <TextView
+                    android:id="@+id/tvFailedDeliveries"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Avg. Delivery Time:"
+                    android:textColor="#6A6F6E"/>
+                <TextView
+                    android:id="@+id/tvAverageTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 min"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubmitCOD"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Submit COD"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#10A87D"
+            android:layout_marginTop="16dp"/>
+
+    </LinearLayout>
+</ScrollView>

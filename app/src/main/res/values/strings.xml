@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">DelivSync</string>
+    <string name="default_notification_channel_id">delivery_notifications</string>
+</resources>
