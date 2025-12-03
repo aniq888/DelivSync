@@ -40,6 +40,10 @@
         <activity
             android:name=".MainActivity"
             android:exported="false" />
+        <activity
+            android:name=".TestApiActivity"
+            android:exported="false"
+            android:label="API Testing" />
 
         <!-- Firebase Cloud Messaging Service -->
         <service

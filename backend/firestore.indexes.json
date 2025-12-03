@@ -1,0 +1,74 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "cod_submissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "driverId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "submittedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "cod_submissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "submittedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "deliveries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "driverId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "priority",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "assignedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "deliveries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "driverId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "priority",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "assignedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
+

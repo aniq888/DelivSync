@@ -1,6 +1,9 @@
 package com.example.driverapp
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.driverapp.repository.AuthRepository
@@ -23,6 +26,25 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize FCM token
         FCMTokenManager.initializeToken()
+
+        // EASY ACCESS TO TEST API ACTIVITY
+        // Long-press anywhere on the screen to open TestApiActivity
+        findViewById<BottomNavigationView>(R.id.bottom_nav)?.setOnLongClickListener {
+            startActivity(Intent(this, TestApiActivity::class.java))
+            Toast.makeText(this, "Opening API Test Activity...", Toast.LENGTH_SHORT).show()
+            true
+        }
+
+        // Also log the Firebase token on startup for easy access
+        FirebaseAuth.getInstance().currentUser?.getIdToken(false)
+            ?.addOnSuccessListener { result ->
+                val token = result.token
+                Log.d("FIREBASE_TOKEN", "========================================")
+                Log.d("FIREBASE_TOKEN", "🔑 COPY THIS TOKEN FOR POSTMAN:")
+                Log.d("FIREBASE_TOKEN", token ?: "null")
+                Log.d("FIREBASE_TOKEN", "========================================")
+                Log.d("FIREBASE_TOKEN", "💡 TIP: Long-press bottom navigation to open Test Activity")
+            }
 
         val bottom = findViewById<BottomNavigationView>(R.id.bottom_nav)
         bottom.setOnItemSelectedListener { item ->

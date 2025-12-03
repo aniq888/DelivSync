@@ -1,0 +1,210 @@
+{
+  "info": {
+    "name": "DelivSync API",
+    "description": "API collection for DelivSync - Admin and Driver endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "YOUR_FIREBASE_ID_TOKEN_HERE",
+      "type": "string"
+    },
+    {
+      "key": "driverId",
+      "value": "driver123",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Check if API is running"
+      }
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Assign Delivery to Driver",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driver_id\": \"{{driverId}}\",\n  \"order_id\": \"ORD-2024-001\",\n  \"customer_name\": \"John Doe\",\n  \"customer_phone\": \"+1234567890\",\n  \"customer_address\": \"123 Main St, New York, NY 10001\",\n  \"latitude\": 40.7128,\n  \"longitude\": -74.0060,\n  \"cod_amount\": 150.50,\n  \"priority\": 1,\n  \"notes\": \"Handle with care - fragile items\",\n  \"estimated_delivery_time\": 1733270400000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/assign-delivery",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "assign-delivery"]
+            },
+            "description": "Admin assigns a new delivery to a driver"
+          }
+        },
+        {
+          "name": "Get All COD Submissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cod-submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cod-submissions"]
+            },
+            "description": "Get all COD submissions from drivers"
+          }
+        },
+        {
+          "name": "Get COD Submissions by Driver",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cod-submissions?driver_id={{driverId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cod-submissions"],
+              "query": [
+                {
+                  "key": "driver_id",
+                  "value": "{{driverId}}"
+                }
+              ]
+            },
+            "description": "Get COD submissions filtered by driver ID"
+          }
+        },
+        {
+          "name": "Get COD Submissions by Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cod-submissions?status=SUBMITTED",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cod-submissions"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "SUBMITTED"
+                }
+              ]
+            },
+            "description": "Get COD submissions filtered by status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Driver",
+      "item": [
+        {
+          "name": "Submit COD Information",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driver_id\": \"{{driverId}}\",\n  \"delivery_id\": \"DELIVERY_ID_HERE\",\n  \"amount\": 150.50,\n  \"receipt_image_base64\": null,\n  \"notes\": \"Cash collected from customer at delivery\",\n  \"submitted_at\": 1733270400000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/driver/submit-cod",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver", "submit-cod"]
+            },
+            "description": "Driver submits COD information to admin"
+          }
+        },
+        {
+          "name": "Get Driver Deliveries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/driver/deliveries/{{driverId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver", "deliveries", "{{driverId}}"]
+            },
+            "description": "Get all deliveries for a specific driver"
+          }
+        },
+        {
+          "name": "Get Driver Deliveries by Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/driver/deliveries/{{driverId}}?status=ASSIGNED",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver", "deliveries", "{{driverId}}"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ASSIGNED"
+                }
+              ]
+            },
+            "description": "Get driver deliveries filtered by status"
+          }
+        }
+      ]
+    }
+  ]
+}
+

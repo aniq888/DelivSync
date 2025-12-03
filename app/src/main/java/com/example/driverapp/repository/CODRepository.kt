@@ -4,7 +4,6 @@ import android.util.Log
 import com.example.driverapp.models.CODSubmission
 import com.example.driverapp.models.CODStatus
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
 class CODRepository {
@@ -37,12 +36,16 @@ class CODRepository {
 
     suspend fun getCODSubmissionsForDriver(driverId: String): List<CODSubmission> {
         return try {
+            // Remove orderBy to avoid index requirements
             val snapshot = codCollection
                 .whereEqualTo("driverId", driverId)
-                .orderBy("submittedAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
-            snapshot.documents.mapNotNull { CODSubmission.fromDocument(it) }
+
+            val submissions = snapshot.documents.mapNotNull { CODSubmission.fromDocument(it) }
+
+            // Sort in memory by submittedAt descending (most recent first)
+            submissions.sortedByDescending { it.submittedAt }
         } catch (e: Exception) {
             Log.e("CODRepository", "Get COD submissions error", e)
             emptyList()

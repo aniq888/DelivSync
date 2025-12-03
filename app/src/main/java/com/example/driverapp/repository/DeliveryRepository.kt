@@ -4,7 +4,6 @@ import android.util.Log
 import com.example.driverapp.models.Delivery
 import com.example.driverapp.models.DeliveryStatus
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
@@ -22,17 +21,23 @@ class DeliveryRepository {
 
     fun getDeliveriesForDriver(driverId: String): Flow<List<Delivery>> = flow {
         try {
+            // Remove orderBy to avoid composite index requirements
             val snapshot = deliveriesCollection
                 .whereEqualTo("driverId", driverId)
-                .orderBy("priority", Query.Direction.DESCENDING)
-                .orderBy("assignedAt", Query.Direction.ASCENDING)
                 .get()
                 .await()
             
             val deliveries = snapshot.documents.mapNotNull { doc ->
                 Delivery.fromDocument(doc)
             }
-            emit(deliveries)
+
+            // Sort in memory: first by priority (desc), then by assignedAt (asc)
+            val sortedDeliveries = deliveries.sortedWith(
+                compareByDescending<Delivery> { it.priority }
+                    .thenBy { it.assignedAt }
+            )
+
+            emit(sortedDeliveries)
         } catch (e: Exception) {
             Log.e("DeliveryRepository", "Error in flow", e)
             emit(emptyList())
@@ -98,13 +103,17 @@ class DeliveryRepository {
 
     suspend fun getCompletedDeliveries(driverId: String): List<Delivery> {
         return try {
+            // Remove orderBy to avoid index requirements
             val snapshot = deliveriesCollection
                 .whereEqualTo("driverId", driverId)
                 .whereEqualTo("status", DeliveryStatus.DELIVERED.name)
-                .orderBy("deliveredAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
-            snapshot.documents.mapNotNull { Delivery.fromDocument(it) }
+
+            val deliveries = snapshot.documents.mapNotNull { Delivery.fromDocument(it) }
+
+            // Sort in memory by deliveredAt descending (most recent first)
+            deliveries.sortedByDescending { it.deliveredAt }
         } catch (e: Exception) {
             Log.e("DeliveryRepository", "Get completed deliveries error", e)
             emptyList()

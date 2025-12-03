@@ -1,0 +1,25 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+
+# Firebase Service Account Key - NEVER COMMIT THIS!
+serviceAccountKey.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
