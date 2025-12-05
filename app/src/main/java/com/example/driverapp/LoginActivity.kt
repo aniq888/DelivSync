@@ -2,71 +2,122 @@ package com.example.driverapp
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.TextUtils
+import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.driverapp.repository.AuthRepository
-import com.example.driverapp.utils.FCMTokenManager
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import androidx.core.content.ContextCompat
+import com.example.driverapp.databinding.ActivityLoginBinding
+import com.example.driverapp.utils.BiometricAuthManager
+import com.google.firebase.auth.FirebaseAuth
+import java.util.concurrent.Executor
 
 class LoginActivity : AppCompatActivity() {
-    private val authRepository = AuthRepository()
+
+    private lateinit var binding: ActivityLoginBinding
+    private lateinit var auth: FirebaseAuth
+
+    // --- BIOMETRIC VARIABLES ---
+    private lateinit var biometricAuthManager: BiometricAuthManager // Manages secure storage and prompt
+    private lateinit var executor: Executor // Handles background tasks for the biometric prompt
+    // ---------------------------
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        val etLoginUser = findViewById<TextInputEditText>(R.id.etLoginUser)
-        val etLoginPassword = findViewById<TextInputEditText>(R.id.etLoginPassword)
-        val btnLogin = findViewById<MaterialButton>(R.id.btnLogin)
+        auth = FirebaseAuth.getInstance()
 
-        btnLogin.setOnClickListener {
-            val userInput = etLoginUser.text?.toString()?.trim() ?: ""
-            val password = etLoginPassword.text?.toString() ?: ""
+        // --- BIOMETRIC INITIALIZATION ---
+        executor = ContextCompat.getMainExecutor(this)
+        biometricAuthManager = BiometricAuthManager(this)
 
-            if (TextUtils.isEmpty(userInput)) {
-                etLoginUser.error = "Please enter email address"
+        setupBiometricButton()
+
+        binding.btnBiometric.setOnClickListener {
+            startBiometricLogin()
+        }
+        // --------------------------------
+
+        // Check if user is already logged in (Existing code logic)
+        if (auth.currentUser != null) {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
+        binding.btnLogin.setOnClickListener {
+            val email = binding.etLoginUser.text.toString().trim()
+            val password = binding.etLoginPassword.text.toString().trim()
+
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Validate email format
-            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(userInput).matches()) {
-                etLoginUser.error = "Please enter a valid email address"
-                return@setOnClickListener
-            }
+            // Existing Firebase Login Logic
+            auth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
 
-            if (TextUtils.isEmpty(password)) {
-                etLoginPassword.error = "Please enter password"
-                return@setOnClickListener
-            }
-            
-            CoroutineScope(Dispatchers.Main).launch {
-                btnLogin.isEnabled = false
-                btnLogin.text = "Logging in..."
+                        // --- BIOMETRIC CREDENTIAL SAVING ---
+                        // 1. Save credentials securely after a successful manual login
+                        biometricAuthManager.saveCredentials(email, password)
+                        // 2. Make sure the biometric button is visible if it wasn't before
+                        setupBiometricButton()
+                        // -----------------------------------
 
-                val result = authRepository.signInWithEmail(userInput, password)
-
-                result.getOrElse { exception ->
-                    Toast.makeText(
-                        this@LoginActivity,
-                        "Login failed: ${exception.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    btnLogin.isEnabled = true
-                    btnLogin.text = "Log In"
-                    return@launch
+                        Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Log.e("LoginActivity", "Login Failed: ${task.exception?.message}")
+                        Toast.makeText(this, "Authentication failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                    }
                 }
+        }
 
-                // Login successful
-                FCMTokenManager.initializeToken()
-                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-                finish()
-            }
+        // Existing navigation logic (e.g., Forgot Password, Signup, etc.)
+        // binding.tvForgot.setOnClickListener { /* ... */ }
+        // binding.tvSignup.setOnClickListener { /* ... */ }
+    }
+
+    // --- NEW BIOMETRIC METHODS START ---
+
+    /**
+     * Checks if biometric authentication is possible and if credentials exist,
+     * then updates the visibility of the Biometric button.
+     */
+    private fun setupBiometricButton() {
+        if (biometricAuthManager.canAuthenticate() && biometricAuthManager.hasStoredCredentials()) {
+            binding.btnBiometric.visibility = View.VISIBLE
+        } else {
+            binding.btnBiometric.visibility = View.GONE
         }
     }
+
+    /**
+     * Initiates the biometric scanning process and handles the result for auto-login.
+     */
+    private fun startBiometricLogin() {
+        biometricAuthManager.showBiometricPrompt(
+            this,
+            executor,
+            onSuccess = {
+                // This block executes after biometric scan AND Firebase sign-in are successful
+                Toast.makeText(this, "Biometric Login Successful!", Toast.LENGTH_SHORT).show()
+
+                // Navigate to Main Activity/Dashboard
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+                finish()
+            },
+            onFailure = { errorMessage ->
+                Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+            }
+        )
+    }
+    // --- NEW BIOMETRIC METHODS END ---
 }
