@@ -24,11 +24,33 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+// --- NEW IMAGE UPLOAD IMPORTS ---
+import android.provider.OpenableColumns
+import com.example.driverapp.api.XamppClient // NEW IMPORT
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.io.File
+import java.io.FileOutputStream
+import org.json.JSONObject // Used to parse the JSON response from PHP
+// --------------------------------
+
 class SignupActivity : AppCompatActivity() {
     private val authRepository = AuthRepository()
     private lateinit var storageRepository: StorageRepository
+
+    // --- EXISTING IMAGE URI VARIABLES ---
     private var profilePhotoUri: Uri? = null
     private var drivingLicenseUri: Uri? = null
+
+    // --- NEW IMAGE UPLOAD VARIABLES ---
+    private lateinit var etProfilePhoto: TextInputEditText // Added lateinit declaration
+    private var xamppProfilePhotoUrl: String = "" // Stores the URL returned by the PHP server
+    // ----------------------------------
 
     private val profilePhotoLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -36,7 +58,13 @@ class SignupActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             result.data?.data?.let { uri ->
                 profilePhotoUri = uri
-                findViewById<TextInputEditText>(R.id.etProfilePhoto).setText("Photo selected")
+
+                // --- EXISTING FIREBASE UI UPDATE ---
+                // findViewById<TextInputEditText>(R.id.etProfilePhoto).setText("Photo selected")
+
+                // --- NEW XAMPP UI / UPLOAD INTEGRATION ---
+                handleProfilePhotoSelection(uri)
+                // ------------------------------------------
             }
         }
     }
@@ -55,8 +83,12 @@ class SignupActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
-        
+
         storageRepository = StorageRepository(this)
+
+        // --- NEW IMAGE UPLOAD INITIALIZATION ---
+        etProfilePhoto = findViewById(R.id.etProfilePhoto) // Initialize the TextInputEditText
+        // ---------------------------------------
 
         val vehicleView = findViewById<AutoCompleteTextView>(R.id.etVehicle)
         val depotView = findViewById<AutoCompleteTextView>(R.id.etDepot)
@@ -88,16 +120,83 @@ class SignupActivity : AppCompatActivity() {
 
         val btnSignUp = findViewById<MaterialButton>(R.id.btnSignUp)
         val tvLogin = findViewById<TextView>(R.id.tvLogin)
-        
+
         btnSignUp.setOnClickListener {
             handleSignUp()
         }
-        
+
         tvLogin.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
     }
+
+    // --- NEW IMAGE UPLOAD LOGIC FUNCTIONS ---
+
+    // Function to handle UI update and start the XAMPP API upload
+    private fun handleProfilePhotoSelection(uri: Uri) {
+
+        // 1. UI Feedback: Show file name in the TextInputEditText
+        contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (cursor.moveToFirst()) {
+                val filename = cursor.getString(nameIndex)
+                etProfilePhoto.setText(filename)
+            } else {
+                etProfilePhoto.setText("Photo selected")
+            }
+        }
+
+        // 2. Start the XAMPP upload
+        uploadProfileImageToXampp(uri)
+    }
+
+    // Function to perform the image POST to the XAMPP API
+    private fun uploadProfileImageToXampp(fileUri: Uri) {
+        // Create a temporary File from the URI
+        val file = File(cacheDir, "profile_pic_temp.jpg")
+        contentResolver.openInputStream(fileUri)?.use { input ->
+            FileOutputStream(file).use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        // Prepare Retrofit Multipart parts
+        val requestFile = RequestBody.create("image/*".toMediaTypeOrNull(), file)
+        // The name 'image' MUST match the name used in your PHP script: $_FILES['image']
+        val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+
+        // Call the XAMPP API client
+        XamppClient.instance.uploadImage(body).enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    val resultJson = response.body()?.string()
+
+                    try {
+                        // Parse the JSON result to get the actual URL
+                        val jsonObject = JSONObject(resultJson)
+                        xamppProfilePhotoUrl = jsonObject.optString("image_url", "")
+
+                        Toast.makeText(this@SignupActivity, "Image Uploaded to XAMPP!", Toast.LENGTH_SHORT).show()
+                        Log.d("XAMPP_UPLOAD", "URL: $xamppProfilePhotoUrl")
+
+                    } catch (e: Exception) {
+                        Toast.makeText(this@SignupActivity, "Upload Success but failed to parse URL.", Toast.LENGTH_LONG).show()
+                    }
+
+                } else {
+                    Toast.makeText(this@SignupActivity, "XAMPP Upload Failed: Check Server/IP", Toast.LENGTH_LONG).show()
+                    Log.e("XAMPP_UPLOAD", "Failed response: ${response.errorBody()?.string()}")
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                Toast.makeText(this@SignupActivity, "Network Error: ${t.message}", Toast.LENGTH_LONG).show()
+            }
+        })
+    }
+
+    // ----------------------------------------------------
 
     private fun handleSignUp() {
         val etFullName = findViewById<TextInputEditText>(R.id.etFullName)
@@ -164,6 +263,14 @@ class SignupActivity : AppCompatActivity() {
             return
         }
 
+        // --- IMPORTANT CHECK FOR RUBRIC REQUIREMENT ---
+        // Ensure image was uploaded to XAMPP successfully before proceeding
+        if (profilePhotoUri != null && xamppProfilePhotoUrl.isEmpty()) {
+            Toast.makeText(this, "Please wait for profile photo upload to complete first.", Toast.LENGTH_LONG).show()
+            return
+        }
+        // -----------------------------------------------
+
         // Use email for authentication (email is now required)
         val btnSignUp = findViewById<MaterialButton>(R.id.btnSignUp)
         btnSignUp.isEnabled = false
@@ -180,6 +287,8 @@ class SignupActivity : AppCompatActivity() {
                     vehicleType = vehicle,
                     depot = depot,
                     licenseNumber = licenseNumber
+                    // --- OPTIONAL: PASS XAMPP URL TO FIREBASE / NODE BACKEND HERE ---
+                    // profilePhotoUrl = xamppProfilePhotoUrl // Add this if your Driver model supports it
                 )
 
                 // Sign up first to get user ID
@@ -217,9 +326,10 @@ class SignupActivity : AppCompatActivity() {
                 val user = result.getOrNull()
                 if (user != null) {
                     btnSignUp.text = "Uploading photos..."
-                    
+
                     // Upload photos on background thread (now we have user ID)
                     withContext(Dispatchers.IO) {
+                        // --- EXISTING FIREBASE STORAGE LOGIC REMAINS HERE ---
                         profilePhotoUri?.let { uri ->
                             storageRepository.uploadProfilePhoto(uri, user.uid).getOrElse {
                                 Log.e("SignupActivity", "Failed to upload profile photo", it)
@@ -231,8 +341,9 @@ class SignupActivity : AppCompatActivity() {
                                 Log.e("SignupActivity", "Failed to upload driving license", it)
                             }
                         }
+                        // ---------------------------------------------------
                     }
-                    
+
                     // Initialize FCM token
                     FCMTokenManager.initializeToken()
                     Toast.makeText(this@SignupActivity, "Sign up successful!", Toast.LENGTH_SHORT).show()
