@@ -79,9 +79,95 @@ class LoginActivity : AppCompatActivity() {
                 }
         }
 
-        // Existing navigation logic (e.g., Forgot Password, Signup, etc.)
-        // binding.tvForgot.setOnClickListener { /* ... */ }
-        // binding.tvSignup.setOnClickListener { /* ... */ }
+        // Forgot Password functionality
+        binding.tvForgot.setOnClickListener {
+            showForgotPasswordDialog()
+        }
+    }
+
+    /**
+     * Shows a dialog to enter email for password reset
+     */
+    private fun showForgotPasswordDialog() {
+        val builder = android.app.AlertDialog.Builder(this)
+        builder.setTitle("Reset Password")
+        builder.setMessage("Enter your email address to receive a password reset link")
+
+        // Create EditText for email input
+        val input = android.widget.EditText(this)
+        input.inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+        input.hint = "Email Address"
+
+        // Pre-fill with email if already entered in login form
+        val existingEmail = binding.etLoginUser.text.toString().trim()
+        if (existingEmail.isNotEmpty()) {
+            input.setText(existingEmail)
+        }
+
+        // Add padding to the EditText
+        val container = android.widget.FrameLayout(this)
+        val params = android.widget.FrameLayout.LayoutParams(
+            android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+            android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+        )
+        val padding = (20 * resources.displayMetrics.density).toInt()
+        params.leftMargin = padding
+        params.rightMargin = padding
+        input.layoutParams = params
+        container.addView(input)
+
+        builder.setView(container)
+
+        builder.setPositiveButton("Send Reset Link") { dialog, _ ->
+            val email = input.text.toString().trim()
+            if (email.isEmpty()) {
+                Toast.makeText(this, "Please enter your email address", Toast.LENGTH_SHORT).show()
+            } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+            } else {
+                sendPasswordResetEmail(email)
+            }
+            dialog.dismiss()
+        }
+
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.cancel()
+        }
+
+        builder.show()
+    }
+
+    /**
+     * Sends password reset email using Firebase Authentication
+     */
+    private fun sendPasswordResetEmail(email: String) {
+        // Show loading indicator
+        binding.btnLogin.isEnabled = false
+
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                binding.btnLogin.isEnabled = true
+
+                if (task.isSuccessful) {
+                    Log.d("LoginActivity", "Password reset email sent to: $email")
+                    Toast.makeText(
+                        this,
+                        "Password reset link sent to $email. Please check your inbox.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Log.e("LoginActivity", "Failed to send reset email: ${task.exception?.message}")
+                    val errorMessage = when {
+                        task.exception?.message?.contains("no user record") == true ->
+                            "No account found with this email address"
+                        task.exception?.message?.contains("badly formatted") == true ->
+                            "Invalid email format"
+                        else ->
+                            "Failed to send reset email: ${task.exception?.message}"
+                    }
+                    Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+                }
+            }
     }
 
     // --- NEW BIOMETRIC METHODS START ---

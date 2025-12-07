@@ -11,10 +11,11 @@ import java.util.UUID
 class StorageRepository(private val context: Context) {
     private val db = FirebaseFirestore.getInstance()
     private val imagesCollection = db.collection("images")
+    private val deliveriesCollection = db.collection("deliveries")
 
     /**
-     * Store image as base64 in Firestore and return document ID
-     * Images are stored in a separate collection to avoid hitting Firestore's 1MB document limit
+     * Store image as base64 directly in the delivery document
+     * This avoids permission issues with separate collections
      */
     suspend fun uploadProofOfDelivery(
         imageUri: Uri,
@@ -26,16 +27,15 @@ class StorageRepository(private val context: Context) {
                 return Result.failure(Exception("Failed to convert image to base64"))
             }
 
-            val imageData = hashMapOf(
-                "deliveryId" to deliveryId,
-                "type" to "proof_of_delivery",
-                "base64" to base64,
-                "createdAt" to System.currentTimeMillis()
+            // Store directly in the delivery document to avoid images collection permission issues
+            val updates = hashMapOf<String, Any>(
+                "proofOfDeliveryBase64" to base64,
+                "proofOfDeliveryUploadedAt" to System.currentTimeMillis()
             )
 
-            val docRef = imagesCollection.add(imageData).await()
-            // Return document ID as reference
-            Result.success(docRef.id)
+            deliveriesCollection.document(deliveryId).update(updates).await()
+            Log.d("StorageRepository", "Proof of delivery uploaded for: $deliveryId")
+            Result.success(deliveryId)
         } catch (e: Exception) {
             Log.e("StorageRepository", "Upload proof of delivery error", e)
             Result.failure(e)
@@ -52,15 +52,15 @@ class StorageRepository(private val context: Context) {
                 return Result.failure(Exception("Failed to convert image to base64"))
             }
 
-            val imageData = hashMapOf(
-                "deliveryId" to deliveryId,
-                "type" to "signature",
-                "base64" to base64,
-                "createdAt" to System.currentTimeMillis()
+            // Store directly in the delivery document to avoid images collection permission issues
+            val updates = hashMapOf<String, Any>(
+                "signatureBase64" to base64,
+                "signatureUploadedAt" to System.currentTimeMillis()
             )
 
-            val docRef = imagesCollection.add(imageData).await()
-            Result.success(docRef.id)
+            deliveriesCollection.document(deliveryId).update(updates).await()
+            Log.d("StorageRepository", "Signature uploaded for: $deliveryId")
+            Result.success(deliveryId)
         } catch (e: Exception) {
             Log.e("StorageRepository", "Upload signature error", e)
             Result.failure(e)
@@ -150,15 +150,8 @@ class StorageRepository(private val context: Context) {
      */
     suspend fun getProofOfDeliveryBase64(deliveryId: String): String? {
         return try {
-            val snapshot = imagesCollection
-                .whereEqualTo("deliveryId", deliveryId)
-                .whereEqualTo("type", "proof_of_delivery")
-                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .limit(1)
-                .get()
-                .await()
-            
-            snapshot.documents.firstOrNull()?.getString("base64")
+            val document = deliveriesCollection.document(deliveryId).get().await()
+            document.getString("proofOfDeliveryBase64")
         } catch (e: Exception) {
             Log.e("StorageRepository", "Get proof of delivery error", e)
             null
@@ -170,15 +163,8 @@ class StorageRepository(private val context: Context) {
      */
     suspend fun getSignatureBase64(deliveryId: String): String? {
         return try {
-            val snapshot = imagesCollection
-                .whereEqualTo("deliveryId", deliveryId)
-                .whereEqualTo("type", "signature")
-                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .limit(1)
-                .get()
-                .await()
-            
-            snapshot.documents.firstOrNull()?.getString("base64")
+            val document = deliveriesCollection.document(deliveryId).get().await()
+            document.getString("signatureBase64")
         } catch (e: Exception) {
             Log.e("StorageRepository", "Get signature error", e)
             null
